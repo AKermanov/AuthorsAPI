@@ -87,6 +87,7 @@ namespace CourseLibrary.API.Controllers
 
             if (courseForAuthorFromRepo == null)
             {
+                // Upserting
                 var courseToAdd = _mapper.Map<Entities.Course>(course);
                 courseToAdd.Id = courseId;
 
@@ -126,6 +127,7 @@ namespace CourseLibrary.API.Controllers
 
             if (courseForAuthorFromRepo == null)
             {
+                // Upserting
                 var courseDto = new CourseForUpdateDto();
                 patchDocument.ApplyTo(courseDto, ModelState);
 
