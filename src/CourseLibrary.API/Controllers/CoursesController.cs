@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using CourseLibrary.API.Entities;
 using CourseLibrary.API.Models;
 using CourseLibrary.API.Services;
+using Marvin.Cache.Headers;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -15,20 +15,25 @@ namespace CourseLibrary.API.Controllers
 {
     [ApiController]
     [Route("api/authors/{authorId}/courses")]
-    public class CoursesContorller : Controller
+    [HttpCacheExpiration(CacheLocation = CacheLocation.Public)]
+    [HttpCacheValidation(MustRevalidate = true)]
+   // [ResponseCache(CacheProfileName = "240SecondsCacheProfile")]
+    public class CoursesController : ControllerBase
     {
-
         private readonly ICourseLibraryRepository _courseLibraryRepository;
         private readonly IMapper _mapper;
 
-        public CoursesContorller(ICourseLibraryRepository courseLibraryRepository, IMapper mapper)
+        public CoursesController(ICourseLibraryRepository courseLibraryRepository,
+            IMapper mapper)
         {
-            _courseLibraryRepository = courseLibraryRepository ?? throw new ArgumentNullException(nameof(courseLibraryRepository));
-            this._mapper = mapper ?? throw new ArgumentNullException(nameof(mapper)); ;
+            _courseLibraryRepository = courseLibraryRepository ??
+                throw new ArgumentNullException(nameof(courseLibraryRepository));
+            _mapper = mapper ??
+                throw new ArgumentNullException(nameof(mapper));
         }
 
-        [HttpGet]
-        public ActionResult<IEquatable<CourseDto>> GetCoursesForAuthor(Guid authorId)
+        [HttpGet(Name = "GetCoursesForAuthor")]
+        public ActionResult<IEnumerable<CourseDto>> GetCoursesForAuthor(Guid authorId)
         {
             if (!_courseLibraryRepository.AuthorExists(authorId))
             {
@@ -39,44 +44,11 @@ namespace CourseLibrary.API.Controllers
             return Ok(_mapper.Map<IEnumerable<CourseDto>>(coursesForAuthorFromRepo));
         }
 
-        [HttpGet("{courseId}", Name = "GetCoursesForAuthor")]
-        public ActionResult<CourseDto> GetCoursesForAuthor(Guid authorId, Guid courseId)
-        {
-            if (!_courseLibraryRepository.AuthorExists(authorId))
-            {
-                return NotFound();
-            }
-
-            var coursesForAuthorFromRepo = _courseLibraryRepository.GetCourse(authorId, courseId);
-
-            if (coursesForAuthorFromRepo == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(_mapper.Map<CourseDto>(coursesForAuthorFromRepo));
-        }
-
-        [HttpPost]
-        public ActionResult<CourseDto> CreateCourseForAuthor(Guid authorId, CourseForCreationDto course)
-        {
-            if (!_courseLibraryRepository.AuthorExists(authorId))
-            {
-                return NotFound();
-            }
-
-            var courseEntity = _mapper.Map<Course>(course);
-            _courseLibraryRepository.AddCourse(authorId, courseEntity);
-            _courseLibraryRepository.Save();
-
-            var courseToReturn = _mapper.Map<CourseDto>(courseEntity);
-            return CreatedAtRoute("GetCoursesForAuthor", new { authorId = authorId, courseId = courseToReturn.Id }, courseToReturn);
-        }
-
-        [HttpPut("{courseId}")]
-        public IActionResult UpdateCourseForAuthor(Guid authorId,
-                 Guid courseId,
-                 CourseForUpdateDto course)
+        [HttpGet("{courseId}", Name = "GetCourseForAuthor")]
+        [HttpCacheExpiration(CacheLocation = CacheLocation.Public, MaxAge = 1000)]
+        [HttpCacheValidation(MustRevalidate = false)]
+        // [ResponseCache(Duration = 120)]
+        public ActionResult<CourseDto> GetCourseForAuthor(Guid authorId, Guid courseId)
         {
             if (!_courseLibraryRepository.AuthorExists(authorId))
             {
@@ -87,7 +59,45 @@ namespace CourseLibrary.API.Controllers
 
             if (courseForAuthorFromRepo == null)
             {
-                // Upserting
+                return NotFound();
+            }
+
+            return Ok(_mapper.Map<CourseDto>(courseForAuthorFromRepo));
+        }
+
+        [HttpPost(Name = "CreateCourseForAuthor")]
+        public ActionResult<CourseDto> CreateCourseForAuthor(
+            Guid authorId, CourseForCreationDto course)
+        {
+            if (!_courseLibraryRepository.AuthorExists(authorId))
+            {
+                return NotFound();
+            }
+
+            var courseEntity = _mapper.Map<Entities.Course>(course);
+            _courseLibraryRepository.AddCourse(authorId, courseEntity);
+            _courseLibraryRepository.Save();
+
+            var courseToReturn = _mapper.Map<CourseDto>(courseEntity);
+            return CreatedAtRoute("GetCourseForAuthor",
+                new { authorId = authorId, courseId = courseToReturn.Id }, 
+                courseToReturn);
+        }
+
+        [HttpPut("{courseId}")]
+        public IActionResult UpdateCourseForAuthor(Guid authorId, 
+            Guid courseId, 
+            CourseForUpdateDto course)
+        {
+            if (!_courseLibraryRepository.AuthorExists(authorId))
+            {
+                return NotFound();
+            }
+
+            var courseForAuthorFromRepo = _courseLibraryRepository.GetCourse(authorId, courseId);
+
+            if (courseForAuthorFromRepo == null)
+            {
                 var courseToAdd = _mapper.Map<Entities.Course>(course);
                 courseToAdd.Id = courseId;
 
@@ -114,9 +124,9 @@ namespace CourseLibrary.API.Controllers
         }
 
         [HttpPatch("{courseId}")]
-        public ActionResult PartiallyUpdateCourseForAuthor(Guid authorId,
-               Guid courseId,
-               JsonPatchDocument<CourseForUpdateDto> patchDocument)
+        public ActionResult PartiallyUpdateCourseForAuthor(Guid authorId, 
+            Guid courseId,
+            JsonPatchDocument<CourseForUpdateDto> patchDocument)
         {
             if (!_courseLibraryRepository.AuthorExists(authorId))
             {
@@ -127,7 +137,6 @@ namespace CourseLibrary.API.Controllers
 
             if (courseForAuthorFromRepo == null)
             {
-                // Upserting
                 var courseDto = new CourseForUpdateDto();
                 patchDocument.ApplyTo(courseDto, ModelState);
 
@@ -136,7 +145,7 @@ namespace CourseLibrary.API.Controllers
                     return ValidationProblem(ModelState);
                 }
 
-                var courseToAdd = _mapper.Map<Course>(courseDto);
+                var courseToAdd = _mapper.Map<Entities.Course>(courseDto);
                 courseToAdd.Id = courseId;
 
                 _courseLibraryRepository.AddCourse(authorId, courseToAdd);
@@ -145,7 +154,7 @@ namespace CourseLibrary.API.Controllers
                 var courseToReturn = _mapper.Map<CourseDto>(courseToAdd);
 
                 return CreatedAtRoute("GetCourseForAuthor",
-                    new { authorId, courseId = courseToReturn.Id },
+                    new { authorId, courseId = courseToReturn.Id }, 
                     courseToReturn);
             }
 
@@ -176,6 +185,7 @@ namespace CourseLibrary.API.Controllers
             }
 
             var courseForAuthorFromRepo = _courseLibraryRepository.GetCourse(authorId, courseId);
+
             if (courseForAuthorFromRepo == null)
             {
                 return NotFound();
@@ -183,12 +193,15 @@ namespace CourseLibrary.API.Controllers
 
             _courseLibraryRepository.DeleteCourse(courseForAuthorFromRepo);
             _courseLibraryRepository.Save();
+
             return NoContent();
         }
 
-        public override ActionResult ValidationProblem([ActionResultObjectValue] ModelStateDictionary modelStateDictionary)
+        public override ActionResult ValidationProblem(
+            [ActionResultObjectValue] ModelStateDictionary modelStateDictionary)
         {
-            var options = HttpContext.RequestServices.GetRequiredService<IOptions<ApiBehaviorOptions>>();
+            var options = HttpContext.RequestServices
+                .GetRequiredService<IOptions<ApiBehaviorOptions>>();
             return (ActionResult)options.Value.InvalidModelStateResponseFactory(ControllerContext);
         }
     }

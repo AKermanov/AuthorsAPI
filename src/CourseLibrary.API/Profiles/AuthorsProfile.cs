@@ -9,16 +9,17 @@ namespace CourseLibrary.API.Profiles
     {
         public AuthorsProfile()
         {
-            CreateMap<Author, AuthorDto>()
+            CreateMap<Entities.Author, Models.AuthorDto>()
                 .ForMember(
-                dest => dest.Name,
-                opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}"))
+                    dest => dest.Name, 
+                    opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}"))
                 .ForMember(
-                dest => dest.Age,
-                opt => opt.MapFrom(src => src.DateOfBirth.GetCurrentAge()));
+                    dest => dest.Age, 
+                    opt => opt.MapFrom(src => src.DateOfBirth.GetCurrentAge(src.DateOfDeath)));
 
             CreateMap<AuthorForCreationDto, Author>();
-
+            CreateMap<AuthorForCreationWithDateOfDeathDto, Author>();
+            CreateMap<Author, AuthorFullDto>();
         }
     }
 }

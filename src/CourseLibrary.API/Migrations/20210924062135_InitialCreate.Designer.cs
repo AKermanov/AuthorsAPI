@@ -10,14 +10,14 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CourseLibrary.API.Migrations
 {
     [DbContext(typeof(CourseLibraryContext))]
-    [Migration("20210914035116_InitilaCreate")]
-    partial class InitilaCreate
+    [Migration("20210924062135_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "3.1.18")
+                .HasAnnotation("ProductVersion", "3.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
@@ -28,6 +28,9 @@ namespace CourseLibrary.API.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTimeOffset>("DateOfBirth")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("DateOfDeath")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("FirstName")
@@ -105,46 +108,6 @@ namespace CourseLibrary.API.Migrations
                             FirstName = "Atherton",
                             LastName = "Crow Ridley",
                             MainCategory = "Rum"
-                        },
-                        new
-                        {
-                            Id = new Guid("71838f8b-6ab3-4539-9e67-4e77b8ede1c0"),
-                            DateOfBirth = new DateTimeOffset(new DateTime(1969, 8, 11, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 3, 0, 0, 0)),
-                            FirstName = "Huxford",
-                            LastName = "The Hawk Morris",
-                            MainCategory = "Maps"
-                        },
-                        new
-                        {
-                            Id = new Guid("119f9ccb-149d-4d3c-ad4f-40100f38e918"),
-                            DateOfBirth = new DateTimeOffset(new DateTime(1972, 1, 8, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 2, 0, 0, 0)),
-                            FirstName = "Dwennon",
-                            LastName = "Rigger Quye",
-                            MainCategory = "Maps"
-                        },
-                        new
-                        {
-                            Id = new Guid("28c1db41-f104-46e6-8943-d31c0291e0e3"),
-                            DateOfBirth = new DateTimeOffset(new DateTime(1982, 5, 5, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 3, 0, 0, 0)),
-                            FirstName = "Rushford",
-                            LastName = "Subtle Asema",
-                            MainCategory = "Rum"
-                        },
-                        new
-                        {
-                            Id = new Guid("d94a64c2-2e8f-4162-9976-0ffe03d30767"),
-                            DateOfBirth = new DateTimeOffset(new DateTime(1976, 7, 12, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 3, 0, 0, 0)),
-                            FirstName = "Hagley",
-                            LastName = "Imposter Grendel",
-                            MainCategory = "Singing"
-                        },
-                        new
-                        {
-                            Id = new Guid("380c2c6b-0d1c-4b82-9d83-3cf635a3e62b"),
-                            DateOfBirth = new DateTimeOffset(new DateTime(1977, 2, 8, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 2, 0, 0, 0)),
-                            FirstName = "Mabel",
-                            LastName = "Barnacle Grendel",
-                            MainCategory = "Maps"
                         });
                 });
 

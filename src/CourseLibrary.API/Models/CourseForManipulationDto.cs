@@ -3,10 +3,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CourseLibrary.API.Models
 {
-    [CourseTitleMustBeDifferentFromDescriptionAttribute(ErrorMessage = "Title must be different from description.")]
+    [CourseTitleMustBeDifferentFromDescription(
+          ErrorMessage = "Title must be different from description.")]
     public abstract class CourseForManipulationDto
     {
-        [Required(ErrorMessage = "Title is required.")]
+        [Required(ErrorMessage = "You should fill out a title.")]
         [MaxLength(100, ErrorMessage = "The title shouldn't have more than 100 characters.")]
         public string Title { get; set; }
 

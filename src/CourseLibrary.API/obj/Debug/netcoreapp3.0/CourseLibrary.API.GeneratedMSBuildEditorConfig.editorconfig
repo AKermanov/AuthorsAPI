@@ -1,0 +1,3 @@
+is_global = true
+build_property.RootNamespace = CourseLibrary.API
+build_property.ProjectDir = C:\Users\Aleksandar Kermanov\Desktop\PluralSight\ASP.net-core-Api\03-Implementing-Advanced-Restfull-Concerns-with-asp.net-core-3\src\CourseLibrary.API\
